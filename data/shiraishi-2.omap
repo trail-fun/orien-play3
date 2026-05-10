@@ -1,0 +1,383 @@
+{
+  "version": "2.0",
+  "name": "サンプル",
+  "points": [
+    {
+      "id": "4f9239d3-c542-428c-aafe-37ebc04baa1b",
+      "type": "start",
+      "order": 0,
+      "displayLabel": "S",
+      "position": [
+        133.518351,
+        34.407187
+      ],
+      "description": ""
+    },
+    {
+      "id": "575012df-6c22-433b-8e40-733547a163f8",
+      "type": "normal",
+      "order": 1,
+      "displayLabel": "1",
+      "position": [
+        133.522934,
+        34.409654
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "8fa81b5b-b9b3-4fa7-a578-0ebb42c41920",
+      "type": "normal",
+      "order": 2,
+      "displayLabel": "2",
+      "position": [
+        133.523376,
+        34.410644
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "c68f48d7-b7ac-4b47-a1f0-b744525adb0c",
+      "type": "normal",
+      "order": 3,
+      "displayLabel": "3",
+      "position": [
+        133.523213,
+        34.411514
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "b6ca5723-bb4a-4ea2-923c-68876fef56bb",
+      "type": "normal",
+      "order": 4,
+      "displayLabel": "4",
+      "position": [
+        133.525123,
+        34.414921
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "bfb9a1e7-b10e-4d91-b427-afd03b7f5a72",
+      "type": "normal",
+      "order": 5,
+      "displayLabel": "5",
+      "position": [
+        133.522747,
+        34.414654
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "fcd68191-4dbe-44e8-a28b-e4a5fdf08723",
+      "type": "normal",
+      "order": 6,
+      "displayLabel": "6",
+      "position": [
+        133.520173,
+        34.4126
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "f54c8643-8151-4474-9d44-bf71d59ab376",
+      "type": "normal",
+      "order": 7,
+      "displayLabel": "7",
+      "position": [
+        133.523249,
+        34.406451
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "a237a009-75bc-4626-be9e-b0829f10329d",
+      "type": "normal",
+      "order": 8,
+      "displayLabel": "8",
+      "position": [
+        133.524005,
+        34.403526
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "256848d4-4837-4234-9d67-ac9ff1e47fc4",
+      "type": "normal",
+      "order": 9,
+      "displayLabel": "9",
+      "position": [
+        133.523313,
+        34.403307
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "d89dc0d4-a344-4056-a717-dd93b5854eb2",
+      "type": "normal",
+      "order": 10,
+      "displayLabel": "10",
+      "position": [
+        133.522423,
+        34.40394
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "459a97d6-bc13-49eb-acb3-0aeb7c06c286",
+      "type": "normal",
+      "order": 11,
+      "displayLabel": "11",
+      "position": [
+        133.522099,
+        34.4019
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "1cfebe7b-a2df-4c1f-a238-4707066096b3",
+      "type": "normal",
+      "order": 12,
+      "displayLabel": "12",
+      "position": [
+        133.521072,
+        34.39952
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "7e369082-b7a5-4e71-9660-6b748c9937a0",
+      "type": "normal",
+      "order": 13,
+      "displayLabel": "13",
+      "position": [
+        133.517412,
+        34.400509
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "34183596-defa-4506-9836-62d0df660e9f",
+      "type": "normal",
+      "order": 14,
+      "displayLabel": "14",
+      "position": [
+        133.516261,
+        34.401524
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "743c1e6c-d408-450a-9f2e-2d4138894e9c",
+      "type": "normal",
+      "order": 15,
+      "displayLabel": "15",
+      "position": [
+        133.515491,
+        34.40102
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "bd003c3b-a9e4-4441-a2a2-763db0d5d3e8",
+      "type": "normal",
+      "order": 16,
+      "displayLabel": "16",
+      "position": [
+        133.516433,
+        34.405984
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "5731384c-0dfe-42be-8891-446c07f7ceec",
+      "type": "normal",
+      "order": 17,
+      "displayLabel": "17",
+      "position": [
+        133.513999,
+        34.408428
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "470a0550-1448-47ee-b491-f5ad014b4a18",
+      "type": "normal",
+      "order": 18,
+      "displayLabel": "18",
+      "position": [
+        133.513717,
+        34.407273
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "1793a2db-1bfa-43b1-8fde-2faf4865453e",
+      "type": "normal",
+      "order": 19,
+      "displayLabel": "19",
+      "position": [
+        133.51367811936578,
+        34.405399768270215
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "cffb1b51-b680-400c-a0dc-5bffe066be90",
+      "type": "normal",
+      "order": 20,
+      "displayLabel": "20",
+      "position": [
+        133.514432,
+        34.404774
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "d4e1aed3-3ef8-4a86-a6aa-b666d9365fa1",
+      "type": "normal",
+      "order": 21,
+      "displayLabel": "21",
+      "position": [
+        133.517824,
+        34.405906
+      ],
+      "description": "",
+      "label": {
+        "offsetDistance": 40,
+        "angle": 45,
+        "fontSize": 32
+      }
+    },
+    {
+      "id": "aea44cda-8cee-440b-92b3-136f1b974c86",
+      "type": "finish",
+      "order": 22,
+      "displayLabel": "F",
+      "position": [
+        133.518251,
+        34.40695
+      ],
+      "description": ""
+    }
+  ],
+  "markerSettings": {
+    "start": {
+      "radius": 17,
+      "strokeWidth": 2.5
+    },
+    "normal": {
+      "radius": 20,
+      "strokeWidth": 2.5
+    },
+    "finish": {
+      "radius": 20,
+      "strokeWidth": 2.5
+    },
+    "routeWidth": 6,
+    "markerColor": "#dc2626",
+    "labelColor": "#dc2626",
+    "routeColor": "#dc2626",
+    "routeVisible": true
+  }
+}

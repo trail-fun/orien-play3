@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPX マルチトラック再生</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Main area (map + sidebar) ── */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    #map {
+      flex: 1;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 240px;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px 12px;
+      overflow-y: auto;
+      border-left: 1px solid #2a2a4a;
+    }
+
+    #sidebar h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #7eb8f7;
+      letter-spacing: 0.04em;
+    }
+
+    #dropzone {
+      border: 2px dashed #3a3a6a;
+      border-radius: 8px;
+      padding: 16px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.7;
+    }
+    #dropzone:hover, #dropzone.drag-over {
+      border-color: #7eb8f7;
+      background: rgba(126,184,247,0.06);
+      color: #bbd;
+    }
+    #dropzone .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+    #file-input { display: none; }
+
+    /* ── Track list ── */
+    #track-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #track-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #232340;
+      border-radius: 6px;
+      padding: 7px 8px;
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .track-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #ccc;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: color 0.1s, background 0.1s;
+    }
+    .remove-btn:hover { color: #e74c3c; background: rgba(231,76,60,0.12); }
+
+    #empty-hint {
+      font-size: 11px;
+      color: #555;
+      text-align: center;
+      padding: 6px 0;
+    }
+
+    /* ── Mode switch ── */
+    #mode-switch {
+      display: flex;
+      gap: 6px;
+    }
+    .mode-label {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: #232340;
+      border-radius: 6px;
+      padding: 6px 4px;
+      cursor: pointer;
+      font-size: 11px;
+      color: #888;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .mode-label:has(input:checked) {
+      background: #2a3a6a;
+      color: #7eb8f7;
+    }
+    .mode-label input { display: none; }
+
+    /* ── Track list ── */
+    .track-start {
+      font-size: 10px;
+      color: #7eb8f7;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .track-start:hover { text-decoration: underline; }
+
+    /* ── CP section ── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #2a2a4a;
+      margin: 4px 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9b8fd4;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    #cp-dropzone {
+      border: 2px dashed #3a3a6a;
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.7;
+    }
+    #cp-dropzone:hover, #cp-dropzone.drag-over {
+      border-color: #9b8fd4;
+      background: rgba(155,143,212,0.06);
+      color: #bbd;
+    }
+
+    #cp-file-input { display: none; }
+
+    #cp-status {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #232340;
+      border-radius: 6px;
+      padding: 7px 8px;
+      font-size: 12px;
+    }
+    #cp-status.visible { display: flex; }
+
+    #cp-count {
+      flex: 1;
+      color: #ccc;
+    }
+
+    #btn-clear-cp {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.1s, background 0.1s;
+    }
+    #btn-clear-cp:hover { color: #e74c3c; background: rgba(231,76,60,0.12); }
+
+    /* ── Controls bar ── */
+    #controls {
+      height: 58px;
+      background: #16213e;
+      border-top: 1px solid #2a2a4a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btn {
+      background: #2a3a6a;
+      border: none;
+      color: #e0e0e0;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.1s;
+    }
+    .ctrl-btn:hover { background: #3a4e8a; }
+    .ctrl-btn:active { background: #1e3060; }
+    .ctrl-btn.active { background: #1a4a3a; color: #6ef5b8; }
+    .ctrl-btn.active:hover { background: #2a6a54; }
+
+    #af-dialog {
+      border: none; border-radius: 12px;
+      background: #1a1a2e; color: #e0e0e0; padding: 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    #af-dialog::backdrop { background: rgba(0,0,0,0.5); }
+    .af-num-input {
+      background: #232340; border: 1px solid #3a3a6a; border-radius: 6px;
+      color: #e0e0e0; padding: 6px 8px; font-size: 13px; width: 68px;
+    }
+    .af-num-input:focus { outline: none; border-color: #7eb8f7; }
+    .af-radio-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; cursor: pointer; font-size: 12px; }
+    .af-num-input:disabled, .af-radio-row input:disabled { opacity: 0.35; cursor: not-allowed; }
+    .af-radio-row:has(input:disabled) { opacity: 0.35; cursor: not-allowed; }
+    #af-track-sel:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .skip-btn { width: auto; padding: 0 7px; font-size: 11px; }
+
+    /* ── LapCenter読込ダイアログ ── */
+    #lc-dialog {
+      border: none; border-radius: 12px;
+      background: #1a1a2e; color: #e0e0e0; padding: 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      width: min(340px, 92vw);
+    }
+    #lc-dialog::backdrop { background: rgba(0,0,0,0.5); }
+    #lc-result {
+      display: none;
+      max-height: 260px; overflow-y: auto;
+      padding: 4px 20px 8px; border-top: 1px solid #2e2e50;
+      flex-direction: column; gap: 4px;
+    }
+    #lc-result.has-data { display: flex; }
+    .lc-runner-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: #e0e0e0; cursor: pointer;
+      padding: 3px 6px; border-radius: 6px;
+    }
+    .lc-runner-label:hover { background: #232350; }
+    .lc-runner-label input[type="radio"] { accent-color: #7eb8f7; cursor: pointer; }
+
+    /* ── CP通過時刻入力ダイアログ ── */
+    #cp-times-dialog {
+      border: none; border-radius: 12px;
+      background: #1a1a2e; color: #e0e0e0; padding: 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    #cp-times-dialog::backdrop { background: rgba(0,0,0,0.5); }
+    #cpt-body { max-height: 55vh; overflow-y: auto; margin-top: 6px; }
+    .cpt-grid {
+      display: grid; grid-template-columns: 2em 78px;
+      gap: 6px 8px; align-items: center;
+    }
+    .cpt-col-toggles { display: flex; gap: 14px; margin: 4px 0 8px; }
+    .cpt-toggle-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: #aaa; cursor: pointer; user-select: none;
+    }
+    .cpt-toggle-label input[type="checkbox"] { display: none; }
+    .cpt-toggle-sw {
+      flex-shrink: 0; width: 28px; height: 16px;
+      background: #3a3a6a; border-radius: 8px; position: relative;
+      transition: background .2s;
+    }
+    .cpt-toggle-sw::after {
+      content: ''; position: absolute;
+      width: 12px; height: 12px; background: #fff; border-radius: 50%;
+      top: 2px; left: 2px; transition: left .2s;
+    }
+    .cpt-toggle-label input:checked + .cpt-toggle-sw { background: #4a7ab5; }
+    .cpt-toggle-label input:checked + .cpt-toggle-sw::after { left: 14px; }
+    .cpt-latlng {
+      background: #1a1a30; border: 1px solid #2e2e50; border-radius: 6px;
+      color: #9ab4d4; padding: 5px 8px; font-size: 11px;
+      font-family: monospace; width: 100%; box-sizing: border-box;
+    }
+    .cpt-grid-hdr { font-size: 11px; color: #888; padding-bottom: 2px; }
+    .cpt-grid-sep { grid-column: 1/-1; border-top: 1px solid #3a3a6a; margin: 2px 0; }
+    .cpt-label { font-size: 13px; color: #e0e0e0; font-weight: 600; text-align: center; }
+    .cpt-input {
+      background: #232340; border: 1px solid #3a3a6a; border-radius: 6px;
+      color: #e0e0e0; padding: 5px 8px; font-size: 13px;
+      font-family: monospace; width: 100%; box-sizing: border-box;
+    }
+    .cpt-input:focus { outline: none; border-color: #7eb8f7; }
+    .cpt-input.cpt-invalid { border-color: #dc2626; background: #2e1a1a; }
+
+    /* ── トラックリスト CP通過ラベル ── */
+    .track-cp-label {
+      font-size: 11px;
+      color: #7eb8f7;
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      padding: 1px 0 2px;
+      min-height: 0;
+    }
+
+    /* ── CP吹き出し ── */
+    .cp-bubble {
+      background: rgba(15, 15, 30, 0.88);
+      border: 1px solid rgba(126, 184, 247, 0.45);
+      border-radius: 8px;
+      color: #7eb8f7;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      padding: 3px 8px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.55);
+      pointer-events: none;
+    }
+    .leaflet-tooltip-top.cp-bubble::before {
+      border-top-color: rgba(126, 184, 247, 0.45);
+    }
+
+    #btn-play { font-size: 18px; }
+
+    #time-display {
+      font-size: 12px;
+      color: #7eb8f7;
+      min-width: 130px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    #slider {
+      flex: 1;
+      accent-color: #7eb8f7;
+      cursor: pointer;
+      height: 4px;
+    }
+
+    #speed {
+      background: #2a3a6a;
+      border: 1px solid #3a4a8a;
+      color: #e0e0e0;
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #speed:focus { outline: none; border-color: #7eb8f7; }
+
+    /* ── Dialog ── */
+    #start-time-dialog {
+      border: none;
+      border-radius: 12px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      min-width: 280px;
+    }
+    #start-time-dialog::backdrop { background: rgba(0,0,0,0.5); }
+    .dlg-inner { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .dlg-title { font-weight: 700; font-size: 14px; color: #7eb8f7; }
+    .dlg-track { font-size: 12px; color: #aaa; }
+    .dlg-label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #aaa; }
+    .dlg-label input:not([type="radio"]):not([type="checkbox"]) {
+      background: #232340;
+      border: 1px solid #3a3a6a;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 6px 8px;
+      font-size: 13px;
+      width: 100%;
+    }
+    .dlg-label input:not([type="radio"]):not([type="checkbox"]):focus { outline: none; border-color: #7eb8f7; }
+    .dlg-row { display: flex; gap: 8px; justify-content: flex-end; }
+    .dlg-btn {
+      border: none; border-radius: 6px; padding: 7px 16px;
+      font-size: 13px; cursor: pointer; transition: opacity 0.1s;
+    }
+    .dlg-btn:hover { opacity: 0.85; }
+    .dlg-btn.primary   { background: #2a3a6a; color: #7eb8f7; }
+    .dlg-btn.secondary { background: #232340; color: #888; }
+    .dlg-hint { font-size: 10px; color: #555; }
+    .dlg-select {
+      background: #232340; border: 1px solid #3a3a6a; border-radius: 6px;
+      color: #e0e0e0; padding: 6px 8px; font-size: 12px; width: 100%;
+    }
+    .dlg-select:focus { outline: none; border-color: #7eb8f7; }
+    input[type="color"] {
+      width: 100%; height: 36px; padding: 2px; border-radius: 6px;
+      border: 1px solid #3a3a6a; background: #232340; cursor: pointer;
+    }
+    input[type="range"] { width: 100%; accent-color: #7eb8f7; margin-top: 4px; }
+    .icon-selector { display: flex; gap: 6px; margin-top: 4px; }
+    .icon-opt {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #232340; border-radius: 6px; padding: 8px 4px;
+      cursor: pointer; font-size: 16px; transition: background 0.12s;
+      border: 1px solid transparent;
+    }
+    .icon-opt:has(input:checked) { background: #2a3a6a; border-color: #7eb8f7; }
+    .icon-opt input { display: none; }
+
+    /* ── クロップダイアログ ── */
+    #crop-dialog {
+      border: none; border-radius: 12px;
+      background: #1a1a2e; color: #e0e0e0; padding: 0;
+      max-width: 380px; width: 92vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,.7);
+    }
+    #crop-dialog::backdrop { background: rgba(0,0,0,0.65); }
+    .crop-inner { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .crop-hint { font-size: 11px; color: #666; margin-top: -8px; }
+    .crop-canvas-wrap { display: flex; justify-content: center; border-radius: 8px; overflow: hidden; background: #0f0f1a; }
+    #crop-canvas { max-width: 100%; cursor: move; display: block; }
+    .crop-controls { display: flex; align-items: center; gap: 14px; }
+    .crop-size-label {
+      flex: 1; display: flex; flex-direction: column;
+      font-size: 11px; color: #aaa; gap: 4px;
+    }
+    .crop-preview-wrap {
+      flex-shrink: 0; position: relative;
+    }
+    #crop-preview { border-radius: 50%; border: 2px solid #3a4a8a; display: block; }
+
+    /* ── 画像アップロード ── */
+    .img-dropzone {
+      border: 2px dashed #3a3a6a; border-radius: 8px;
+      padding: 14px 10px; text-align: center; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      font-size: 11px; color: #666; margin-top: 4px;
+      transition: border-color 0.15s;
+    }
+    .img-dropzone:hover, .img-dropzone.drag-over { border-color: #7eb8f7; color: #aab; }
+    #tsd-img-preview {
+      width: 52px; height: 52px; border-radius: 50%;
+      overflow: hidden; display: none; border: 2px solid #3a4a8a;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="main">
+      <div id="map"></div>
+      <div id="sidebar">
+        <h1>GPX マルチトラック再生</h1>
+
+        <div id="dropzone">
+          <span class="icon">📂</span>
+          GPXファイルをドロップ<br>またはクリックして選択
+        </div>
+        <input type="file" id="file-input" multiple accept=".gpx">
+
+        <div id="mode-switch">
+          <label class="mode-label">
+            <input type="radio" name="mode" value="time" checked>
+            <span>時刻同期</span>
+          </label>
+          <label class="mode-label">
+            <input type="radio" name="mode" value="elapsed">
+            <span>経過時間</span>
+          </label>
+        </div>
+
+        <ul id="track-list"></ul>
+        <p id="empty-hint">トラックが読み込まれていません</p>
+
+        <hr class="section-divider">
+        <span class="section-label">コントロールポイント</span>
+
+        <div id="cp-dropzone">
+          <span class="icon">📍</span>
+          CPデータ(.mcp / .csv)をドロップ<br>またはクリックして選択
+        </div>
+        <input type="file" id="cp-file-input" accept=".csv,.mcp">
+
+        <div id="cp-status">
+          <span id="cp-count"></span>
+          <button id="btn-clear-cp">消去</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="controls">
+      <button class="ctrl-btn" id="btn-reset" title="最初に戻る">⏮</button>
+      <button class="ctrl-btn skip-btn" data-skip="-300000" title="-5分">-5分</button>
+      <button class="ctrl-btn skip-btn" data-skip="-60000"  title="-1分">-1分</button>
+      <button class="ctrl-btn skip-btn" data-skip="-5000"   title="-5秒">-5秒</button>
+      <button class="ctrl-btn" id="btn-play" title="再生/一時停止">▶</button>
+      <button class="ctrl-btn skip-btn" data-skip="5000"    title="+5秒">+5秒</button>
+      <button class="ctrl-btn skip-btn" data-skip="60000"   title="+1分">+1分</button>
+      <button class="ctrl-btn skip-btn" data-skip="300000"  title="+5分">+5分</button>
+      <span id="time-display">--:--:--</span>
+      <input type="range" id="slider" min="0" max="1000" value="0" step="1">
+      <select id="speed" title="再生速度">
+        <option value="1">1×</option>
+        <option value="5">5×</option>
+        <option value="10">10×</option>
+        <option value="30">30×</option>
+        <option value="60" selected>60×</option>
+        <option value="120">120×</option>
+      </select>
+      <button class="ctrl-btn" id="btn-autofollow" title="自動追従 ON/OFF">🎯</button>
+      <button class="ctrl-btn" id="btn-record" title="動画出力">🎥</button>
+    </div>
+  </div>
+
+  <!-- トラック設定ダイアログ -->
+  <dialog id="track-settings-dialog">
+    <div class="dlg-inner">
+      <div class="dlg-title">トラック設定</div>
+
+      <label class="dlg-label">名前
+        <input type="text" id="tsd-name" placeholder="トラック名">
+      </label>
+
+      <label class="dlg-label">
+        スタート日時 <span class="dlg-hint">（経過時間モード用）</span>
+        <input type="datetime-local" id="tsd-start" step="1">
+      </label>
+
+      <div class="dlg-label">アイコン
+        <div class="icon-selector">
+          <label class="icon-opt" title="丸"><input type="radio" name="tsd-icon" value="circle">●</label>
+          <label class="icon-opt" title="四角"><input type="radio" name="tsd-icon" value="square">■</label>
+          <label class="icon-opt" title="三角"><input type="radio" name="tsd-icon" value="triangle">▲</label>
+          <label class="icon-opt" title="ひし形"><input type="radio" name="tsd-icon" value="diamond">◆</label>
+          <label class="icon-opt" title="矢印"><input type="radio" name="tsd-icon" value="arrow">➤</label>
+          <label class="icon-opt" title="画像"><input type="radio" name="tsd-icon" value="image">🖼</label>
+        </div>
+      </div>
+
+      <label class="dlg-label">アイコンサイズ &nbsp;<span id="tsd-iconsize-val">14</span>px
+        <input type="range" id="tsd-iconsize" min="8" max="40" step="1" value="14">
+      </label>
+
+      <div id="tsd-image-section" style="display:none">
+        <div class="dlg-label">画像
+          <div id="tsd-img-drop" class="img-dropzone">
+            <div id="tsd-img-preview"></div>
+            <span id="tsd-img-hint">画像をドロップまたはクリックして選択</span>
+          </div>
+          <input type="file" id="tsd-img-input" accept="image/*" style="display:none">
+        </div>
+      </div>
+
+      <label class="dlg-label">色
+        <input type="color" id="tsd-color">
+      </label>
+
+      <label class="dlg-label">軌跡の長さ
+        <select id="tsd-trail" class="dlg-select">
+          <option value="0">全て表示</option>
+          <option value="30000">30秒</option>
+          <option value="60000" selected>1分</option>
+          <option value="300000">5分</option>
+          <option value="600000">10分</option>
+          <option value="1800000">30分</option>
+        </select>
+      </label>
+
+      <label class="dlg-label">軌跡の太さ &nbsp;<span id="tsd-weight-val">4</span>
+        <input type="range" id="tsd-weight" min="1" max="10" step="1" value="4">
+      </label>
+
+      <button class="dlg-btn secondary" id="tsd-cp-times" style="width:100%">📋 CP通過時刻を入力</button>
+
+      <div class="dlg-row">
+        <button class="dlg-btn secondary" id="tsd-cancel">キャンセル</button>
+        <button class="dlg-btn primary"   id="tsd-ok">適用</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 画像クロップダイアログ -->
+  <dialog id="crop-dialog">
+    <div class="crop-inner">
+      <div class="dlg-title">クリップ位置の設定</div>
+      <p class="crop-hint">ドラッグで位置、スライダーでサイズを調整</p>
+      <div class="crop-canvas-wrap">
+        <canvas id="crop-canvas"></canvas>
+      </div>
+      <div class="crop-controls">
+        <label class="crop-size-label">サイズ
+          <input type="range" id="crop-size" min="5" max="100" value="80">
+        </label>
+        <div class="crop-preview-wrap">
+          <canvas id="crop-preview" width="56" height="56"></canvas>
+        </div>
+      </div>
+      <div class="dlg-row">
+        <button class="dlg-btn secondary" id="crop-cancel">キャンセル</button>
+        <button class="dlg-btn primary"   id="crop-ok">確定</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 録画ダイアログ -->
+  <dialog id="rec-dialog">
+    <div class="dlg-inner" style="min-width:260px">
+      <div class="dlg-title">🎥 動画出力</div>
+
+      <div id="rec-settings">
+        <label class="dlg-label">解像度
+          <select id="rec-res" class="dlg-select">
+            <option value="360" selected>360 × 360</option>
+            <option value="540">540 × 540</option>
+            <option value="720">720 × 720</option>
+            <option value="1080">1080 × 1080</option>
+          </select>
+        </label>
+        <label class="dlg-label">再生速度
+          <select id="rec-speed" class="dlg-select">
+            <option value="10">10×</option>
+            <option value="30">30×</option>
+            <option value="60" selected>60×</option>
+            <option value="120">120×</option>
+          </select>
+        </label>
+        <label class="dlg-label">フレームレート
+          <select id="rec-fps" class="dlg-select">
+            <option value="15" selected>15 fps</option>
+            <option value="30">30 fps</option>
+          </select>
+        </label>
+        <label class="dlg-label">ビットレート
+          <select id="rec-bitrate" class="dlg-select">
+            <option value="500000">0.5 Mbps（最小）</option>
+            <option value="1000000" selected>1 Mbps（小）</option>
+            <option value="2500000">2.5 Mbps（中）</option>
+            <option value="5000000">5 Mbps（高画質）</option>
+          </select>
+        </label>
+        <p id="rec-hint" class="dlg-hint" style="margin-top:4px"></p>
+      </div>
+
+      <div id="rec-active" style="display:none;flex-direction:column;gap:6px">
+        <p style="font-size:12px;color:#aaa;text-align:center">レンダリング中...</p>
+        <progress id="rec-progress" value="0" max="1" style="width:100%;accent-color:#7eb8f7;height:8px"></progress>
+        <p id="rec-pct" style="font-size:12px;color:#7eb8f7;text-align:center">0%</p>
+      </div>
+
+      <div class="dlg-row" style="margin-top:4px">
+        <button class="dlg-btn secondary" id="rec-cancel">キャンセル</button>
+        <button class="dlg-btn primary"   id="rec-start">開始</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 自動追従設定ダイアログ -->
+  <dialog id="af-dialog">
+    <div class="dlg-inner" style="width:min(320px,90vw)">
+      <div class="dlg-title">🎯 自動追従設定</div>
+
+      <label class="dlg-label" style="flex-direction:row;align-items:center;gap:10px">
+        自動追従
+        <input type="checkbox" id="af-enabled" style="width:18px;height:18px;cursor:pointer;accent-color:#7eb8f7">
+      </label>
+
+      <div class="dlg-label">中心位置
+        <label class="af-radio-row">
+          <input type="radio" name="af-center" value="avg" checked> 全競技者の真ん中にする
+        </label>
+        <label class="af-radio-row">
+          <input type="radio" name="af-center" value="track"> 以下の競技者を中心にする
+        </label>
+        <select id="af-track-sel" class="dlg-select" style="margin-top:5px"></select>
+      </div>
+
+      <label class="dlg-label" style="flex-direction:row;align-items:center;gap:10px">
+        拡大縮小
+        <input type="checkbox" id="af-zoom" checked style="width:18px;height:18px;cursor:pointer;accent-color:#7eb8f7">
+      </label>
+
+      <label class="dlg-label">縮小条件
+        <span class="dlg-hint">このサイズを超えたら縮小（10〜100%）</span>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:5px">
+          <input type="number" id="af-outpct" class="af-num-input" min="10" max="100" value="80">
+          <span style="font-size:13px">%</span>
+        </div>
+      </label>
+
+      <label class="dlg-label">拡大条件
+        <span class="dlg-hint">このサイズ以下なら拡大（10〜90%）</span>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:5px">
+          <input type="number" id="af-inpct" class="af-num-input" min="10" max="90" value="30">
+          <span style="font-size:13px">%</span>
+        </div>
+      </label>
+
+
+      <div class="dlg-row">
+        <button class="dlg-btn secondary" id="af-close">閉じる</button>
+        <button class="dlg-btn primary"   id="af-apply">適用</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- LapCenter読込ダイアログ -->
+  <dialog id="lc-dialog">
+    <div class="dlg-inner" style="gap:8px;">
+      <div class="dlg-title">🌐 LapCenter 読込</div>
+    </div>
+    <input type="file" id="lc-file-input" accept=".html,.htm" style="display:none">
+    <div id="lc-result"></div>
+    <div class="dlg-inner" style="gap:8px;">
+      <div class="dlg-row">
+        <button class="dlg-btn primary"   id="lc-read">読込</button>
+        <button class="dlg-btn secondary" id="lc-close">閉じる</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- CP通過時刻入力ダイアログ -->
+  <dialog id="cp-times-dialog">
+    <div class="dlg-inner" style="width:min(340px,92vw)">
+      <div class="dlg-title">📋 CP通過時刻入力</div>
+      <label class="dlg-label">競技者
+        <select id="cpt-track-sel" class="dlg-select"></select>
+      </label>
+      <div class="cpt-col-toggles">
+        <label class="cpt-toggle-label">
+          <input type="checkbox" id="cpt-show-gpx">
+          <span class="cpt-toggle-sw"></span>緯度・経度（GPX）
+        </label>
+        <label class="cpt-toggle-label">
+          <input type="checkbox" id="cpt-show-cp">
+          <span class="cpt-toggle-sw"></span>緯度・経度（CP）
+        </label>
+      </div>
+      <div id="cpt-body"></div>
+      <div class="dlg-row" style="margin-top:8px">
+        <button class="dlg-btn secondary" id="cpt-import">データ読込</button>
+        <input type="file" id="cpt-file-input" accept=".csv" style="display:none">
+        <button class="dlg-btn secondary" id="cpt-lc-import">LC読込</button>
+        <button class="dlg-btn secondary" id="cpt-gpx-correct">軌跡補正</button>
+        <button class="dlg-btn secondary" id="cpt-close">閉じる</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
