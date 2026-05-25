@@ -48,17 +48,17 @@
     /* ── サイドバートグルボタン（モバイルのみ） ── */
     #sidebar-toggle {
       display: none;
-      position: absolute;
+      position: fixed;
       top: 10px;
       right: 10px;
-      z-index: 1000;
+      z-index: 1100;
       background: #1a1a2e;
       border: 1px solid #3a3a6a;
       color: #7eb8f7;
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 8px;
-      font-size: 18px;
+      font-size: 20px;
       cursor: pointer;
       align-items: center;
       justify-content: center;
@@ -71,10 +71,10 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.45);
-      z-index: 999;
+      z-index: 1050;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 900px) {
       #sidebar-toggle {
         display: flex;
       }
@@ -83,8 +83,8 @@
         top: 0;
         right: 0;
         bottom: 0;
-        z-index: 1000;
-        width: 260px;
+        z-index: 1100;
+        width: 270px;
         transform: translateX(100%);
         border-left: 1px solid #3a3a6a;
         box-shadow: -4px 0 20px rgba(0,0,0,0.6);
@@ -546,9 +546,8 @@
 <body>
   <div id="app">
     <div id="main">
-      <div id="map">
-        <button id="sidebar-toggle" title="メニュー">☰</button>
-      </div>
+      <div id="map"></div>
+      <button id="sidebar-toggle" title="メニュー">☰</button>
       <div id="sidebar-backdrop"></div>
       <div id="sidebar">
         <h1>GPX マルチトラック再生</h1>
