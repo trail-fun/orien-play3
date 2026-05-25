@@ -948,10 +948,11 @@ const btnClearCP   = document.getElementById('btn-clear-cp');
 
 async function handleCPFile(file) {
   const name = file.name.toLowerCase();
-  if (!name.endsWith('.csv') && !name.endsWith('.mcp')) return;
+  if (!name.endsWith('.csv') && !name.endsWith('.mcp') && !name.endsWith('.json')) return;
   try {
     const text = await file.text();
-    const cps  = name.endsWith('.mcp') ? parseOmap(text) : parseCSV(text);
+    const isMcp = name.endsWith('.mcp') || name.endsWith('.json');
+    const cps = isMcp ? parseOmap(text) : parseCSV(text);
     loadCPs(cps);
   } catch (err) {
     alert(`CP読み込みエラー: ${err.message}`);
