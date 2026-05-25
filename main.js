@@ -653,6 +653,18 @@ function seek(ms) {
   renderFrame();
 }
 
+// ── サイドバートグル（モバイル） ──────────────────────────────
+const sidebarToggle   = document.getElementById('sidebar-toggle');
+const sidebarEl       = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+function openSidebar()  { sidebarEl.classList.add('open'); sidebarBackdrop.classList.add('open'); }
+function closeSidebar() { sidebarEl.classList.remove('open'); sidebarBackdrop.classList.remove('open'); }
+
+sidebarToggle.addEventListener('click', () =>
+  sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar());
+sidebarBackdrop.addEventListener('click', closeSidebar);
+
 // ── UI helpers ─────────────────────────────────────────────────
 const btnPlay    = document.getElementById('btn-play');
 const btnReset   = document.getElementById('btn-reset');
