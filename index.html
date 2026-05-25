@@ -278,14 +278,45 @@
 
     /* ── Controls bar ── */
     #controls {
-      height: 58px;
       background: #16213e;
       border-top: 1px solid #2a2a4a;
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 0 12px;
+      gap: 4px;
+      padding: 0 8px;
       flex-shrink: 0;
+      flex-wrap: wrap;
+      min-height: 58px;
+    }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-row-slider {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    @media (max-width: 900px) {
+      #controls {
+        padding: 6px 8px;
+        gap: 0;
+        row-gap: 4px;
+        min-height: unset;
+      }
+      .ctrl-row {
+        width: 100%;
+        justify-content: center;
+        gap: 4px;
+      }
+      .ctrl-row-slider {
+        flex: unset;
+        padding-bottom: 2px;
+      }
     }
 
     .ctrl-btn {
@@ -589,26 +620,30 @@
     </div>
 
     <div id="controls">
-      <button class="ctrl-btn" id="btn-reset" title="最初に戻る">⏮</button>
-      <button class="ctrl-btn skip-btn" data-skip="-300000" title="-5分">-5分</button>
-      <button class="ctrl-btn skip-btn" data-skip="-60000"  title="-1分">-1分</button>
-      <button class="ctrl-btn skip-btn" data-skip="-5000"   title="-5秒">-5秒</button>
-      <button class="ctrl-btn" id="btn-play" title="再生/一時停止">▶</button>
-      <button class="ctrl-btn skip-btn" data-skip="5000"    title="+5秒">+5秒</button>
-      <button class="ctrl-btn skip-btn" data-skip="60000"   title="+1分">+1分</button>
-      <button class="ctrl-btn skip-btn" data-skip="300000"  title="+5分">+5分</button>
-      <span id="time-display">--:--:--</span>
-      <input type="range" id="slider" min="0" max="1000" value="0" step="1">
-      <select id="speed" title="再生速度">
-        <option value="1">1×</option>
-        <option value="5">5×</option>
-        <option value="10">10×</option>
-        <option value="30">30×</option>
-        <option value="60" selected>60×</option>
-        <option value="120">120×</option>
-      </select>
-      <button class="ctrl-btn" id="btn-autofollow" title="自動追従 ON/OFF">🎯</button>
-      <button class="ctrl-btn" id="btn-record" title="動画出力">🎥</button>
+      <div class="ctrl-row">
+        <button class="ctrl-btn" id="btn-reset" title="最初に戻る">⏮</button>
+        <button class="ctrl-btn skip-btn" data-skip="-300000" title="-5分">-5分</button>
+        <button class="ctrl-btn skip-btn" data-skip="-60000"  title="-1分">-1分</button>
+        <button class="ctrl-btn skip-btn" data-skip="-5000"   title="-5秒">-5秒</button>
+        <button class="ctrl-btn" id="btn-play" title="再生/一時停止">▶</button>
+        <button class="ctrl-btn skip-btn" data-skip="5000"    title="+5秒">+5秒</button>
+        <button class="ctrl-btn skip-btn" data-skip="60000"   title="+1分">+1分</button>
+        <button class="ctrl-btn skip-btn" data-skip="300000"  title="+5分">+5分</button>
+        <select id="speed" title="再生速度">
+          <option value="1">1×</option>
+          <option value="5">5×</option>
+          <option value="10">10×</option>
+          <option value="30">30×</option>
+          <option value="60" selected>60×</option>
+          <option value="120">120×</option>
+        </select>
+        <button class="ctrl-btn" id="btn-autofollow" title="自動追従 ON/OFF">🎯</button>
+        <button class="ctrl-btn" id="btn-record" title="動画出力">🎥</button>
+      </div>
+      <div class="ctrl-row ctrl-row-slider">
+        <span id="time-display">--:--:--</span>
+        <input type="range" id="slider" min="0" max="1000" value="0" step="1">
+      </div>
     </div>
   </div>
 
